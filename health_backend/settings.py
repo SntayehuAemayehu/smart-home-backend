@@ -23,7 +23,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-w1hs1h6is&r9gexag0r5y!#dwhpt4g#ss+=6lh7&7k^ct7iba-'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 # Allow local development
 ALLOWED_HOSTS = ['*']
@@ -64,7 +64,7 @@ MIDDLEWARE = [
 # --- CORS CONFIGURATION (Allows React on port 3000 to talk to Django) ---
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
-    "http://127.0.0.1:3000",
+    "https://water-frontend-eight.vercel.app",
 ]
 # ------------------------------------------------------------------------
 
@@ -132,6 +132,11 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+# Add this to enable WhiteNoise compression
+STORAGES = {
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
