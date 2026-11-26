@@ -11,11 +11,11 @@ def create_smart_devices(apps, schema_editor):
         SmartHomeDevice.objects.create(name="Bedroom Fan", device_id="fan1")
 
 class Migration(migrations.Migration):
-    dependencies = [
-        ('vitals', '0004_smarthomedevice'),
-    ]
     
-
+    
+    dependencies = [
+        ('vitals', '0001_initial'),
+    ]
     operations = [
         migrations.RunPython(create_smart_devices),
     ]
