@@ -62,10 +62,7 @@ MIDDLEWARE = [
 ]
 
 # --- CORS CONFIGURATION (Allows React on port 3000 to talk to Django) ---
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "https://water-frontend-eight.vercel.app",
-]
+CORS_ALLOW_ALL_ORIGINS = True
 # ------------------------------------------------------------------------
 
 ROOT_URLCONF = 'health_backend.urls'
