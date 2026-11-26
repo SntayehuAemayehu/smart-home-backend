@@ -2,6 +2,6 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path('latest/', views.get_latest_readings),
-    path('dispatch/', views.dispatch_maintenance),
+    path('vitals/', views.get_latest_vitals),
+    path('reset-alarm/', views.reset_alarm),
 ]

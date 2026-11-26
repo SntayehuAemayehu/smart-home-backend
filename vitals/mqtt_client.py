@@ -1,37 +1,40 @@
-import json
 import paho.mqtt.client as mqtt
+import json
 from .models import VitalsReading
 
-TOPIC_DATA = 'health/device1/data'
-TOPIC_COMMAND = 'health/device1/command'
+BROKER = "broker.hivemq.com"
+PORT = 1883
+TOPIC_SENSOR = "health_project/device1/sensor"
+TOPIC_COMMAND = "health_project/device1/command"
 
-# Create a global client so we can use it in views
-mqtt_client = mqtt.Client()
-
-def on_connect(client, userdata, flags, rc):
-    print("🔵 [DJANGO] Connected to MQTT Broker")
-    client.subscribe(TOPIC_DATA)
+def on_connect(client, userdata, flags, reason_code, properties):
+    print(f"🔵 [DJANGO] Connected to MQTT Broker (rc={reason_code})")
+    client.subscribe(TOPIC_SENSOR)
 
 def on_message(client, userdata, msg):
-    if msg.topic == TOPIC_DATA:
-        payload = json.loads(msg.payload.decode())
-        print(f"📊 [DJANGO] Received data from hardware: {payload}")
+    try:
+        data = json.loads(msg.payload.decode())
+        print(f"📊 [DJANGO] Received: {data}")
         
-        # Save to database
         VitalsReading.objects.create(
-            device_id=payload['deviceId'],
-            heart_rate=payload['heartRate'],
-            temperature=payload['temperature']
+            device_id=str(data.get('deviceId', 'unknown')),
+            heart_rate=int(float(data.get('heartRate', 0))),
+            temperature=float(data.get('temperature', 0.0))
         )
-        
-        # Automation Logic: If heart rate > 100, send ALARM command back to hardware
-        if payload['heartRate'] > 100:
-            command = json.dumps({"action": "ALARM_ON"})
-            mqtt_client.publish(TOPIC_COMMAND, command)
-            print("🚨 [DJANGO] Heart rate critical! Sent ALARM_ON to hardware.")
+        print("💾 [DATABASE] Saved reading to SQLite!")
+    except Exception as e:
+        print(f"❌ Error: {e}")
+
+mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+mqtt_client.on_connect = on_connect
+mqtt_client.on_message = on_message
 
 def start_mqtt():
-    mqtt_client.on_connect = on_connect
-    mqtt_client.on_message = on_message
-    mqtt_client.connect("broker.hivemq.com", 1883, 60)
-    mqtt_client.loop_start() # Runs in background thread
+    mqtt_client.connect(BROKER, PORT, 60)
+    mqtt_client.loop_start()
+    print("🚀 MQTT started")
+
+def send_command(action: str):
+    payload = json.dumps({"action": action})
+    mqtt_client.publish(TOPIC_COMMAND, payload)
+    print(f"📤 [DJANGO] Sent command: {payload}")
