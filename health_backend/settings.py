@@ -49,7 +49,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     # CORS Middleware MUST be placed before CommonMiddleware and CsrfViewMiddleware
     'corsheaders.middleware.CorsMiddleware', 
     
