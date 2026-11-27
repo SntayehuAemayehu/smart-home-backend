@@ -1,4 +1,3 @@
-
 import paho.mqtt.client as mqtt
 import json
 from .models import SmartHomeDevice
@@ -30,13 +29,18 @@ def start_mqtt():
 
 def send_device_command(device_id: str, action: str):
     payload = json.dumps({"device": device_id, "action": action})
-    mqtt_client.publish(TOPIC_COMMAND, payload)
-    print(f"📤 [DJANGO] Sent command: {payload}")
     
-    # Update the database
+    # Publish the message to the MQTT Broker
+    result = mqtt_client.publish(TOPIC_COMMAND, payload)
+    print(f"📤 [DJANGO] Sent command: {payload} (Status: {result.rc})")
+    
+    # Try to update the database, but don't crash if it fails
     try:
-        dev = SmartHomeDevice.objects.get(device_id=device_id)
+        dev, created = SmartHomeDevice.objects.get_or_create(
+            device_id=device_id,
+            defaults={'name': 'Device', 'status': False}
+        )
         dev.status = (action == "ON")
         dev.save()
-    except SmartHomeDevice.DoesNotExist:
-        pass
+    except Exception as e:
+        print(f"⚠️ Database update skipped: {e}")

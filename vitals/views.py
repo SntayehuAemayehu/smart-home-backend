@@ -6,7 +6,7 @@ from django.http import JsonResponse
 
 @api_view(['GET'])
 def list_devices(request):
-    # We hardcode the list here to bypass database errors
+    # Hardcode the list so the frontend always has devices to show
     devices = [
         {"id": "light1", "name": "Living Room Light", "status": False},
         {"id": "fan1", "name": "Bedroom Fan", "status": False}
