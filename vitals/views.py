@@ -20,3 +20,16 @@ def toggle_device(request):
         
     send_device_command(device_id, action)
     return Response({"status": f"{device_id} turned {action}"})
+
+
+def seed_devices(request):
+    # Create devices if they don't exist
+    SmartHomeDevice.objects.get_or_create(
+        device_id="light1", 
+        defaults={"name": "Living Room Light", "status": False}
+    )
+    SmartHomeDevice.objects.get_or_create(
+        device_id="fan1", 
+        defaults={"name": "Bedroom Fan", "status": False}
+    )
+    return JsonResponse({"status": "Database seeded successfully!"})
