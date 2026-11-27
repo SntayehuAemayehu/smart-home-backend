@@ -7,6 +7,7 @@ PORT = 1883
 TOPIC_SENSOR = "ethio_home/sensor"
 TOPIC_COMMAND = "ethio_home/command"
 
+# This is used to receive data (leave it as is)
 def on_connect(client, userdata, flags, reason_code, properties):
     print(f"🔵 [DJANGO] Connected to MQTT Broker (rc={reason_code})")
     client.subscribe(TOPIC_SENSOR)
@@ -27,14 +28,28 @@ def start_mqtt():
     mqtt_client.loop_start()
     print("🚀 MQTT background thread started")
 
+# --- NEW FORCE SEND FUNCTION ---
 def send_device_command(device_id: str, action: str):
     payload = json.dumps({"device": device_id, "action": action})
     
-    # Publish the message to the MQTT Broker
-    result = mqtt_client.publish(TOPIC_COMMAND, payload)
-    print(f"📤 [DJANGO] Sent command: {payload} (Status: {result.rc})")
+    print(f"⏳ [DJANGO] Attempting to send command to HiveMQ...")
     
-    # Try to update the database, but don't crash if it fails
+    try:
+        # Create a brand new temporary client just for this one command
+        temp_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
+        temp_client.connect(BROKER, PORT, 60)
+        
+        # Publish and wait for it to finish
+        info = temp_client.publish(TOPIC_COMMAND, payload)
+        info.wait_for_publish() 
+        
+        temp_client.disconnect()
+        print(f"📤 [DJANGO] SUCCESS: Sent command: {payload}")
+        
+    except Exception as e:
+        print(f"❌ [DJANGO] FAILED to send MQTT: {e}")
+    
+    # Try to update the database
     try:
         dev, created = SmartHomeDevice.objects.get_or_create(
             device_id=device_id,
